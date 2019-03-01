@@ -30,6 +30,7 @@ from fake_useragent import UserAgent
 geckodriver = '/home/ubuntu/Desktop/News_Output_Test/geckodriver/geckodriver'
 count = 1
 Total = 0
+TotalOutputArticles = 0
 ArticlesList = []
 
 # =============================================================================
@@ -39,7 +40,6 @@ ArticlesList = []
 def Scrapper(url, 
              name = "not available", 
              title = "not available", 
-             total = 0, 
              author = "not available", 
              urlToImage = "not available",
              publishedAt = "not available",
@@ -51,6 +51,7 @@ def Scrapper(url,
     OutputTimesOfIndia=[]
     global count
     global ArticlesList
+    global TotalOutputArticles
 
 # =============================================================================
 # User agent list to scrap different usrs and spoof various browsers 
@@ -130,7 +131,7 @@ def Scrapper(url,
                 'publishedAt': publishedAt,
                 'content': str(outputTheHindu)
                 }
-                
+
         ArticlesList.append(data)
                 
         #with open('NewsJsonOutput.json', 'a') as f:
@@ -171,6 +172,7 @@ def Scrapper(url,
                 if len(OutputText[InternalIterator]) > 4:
                     text = re.sub(r'[^\w\s]','', OutputText[InternalIterator])
                     OutputZeeNews.append(text)
+                    
                     
             print(OutputZeeNews)
             count = count + 1
@@ -261,13 +263,16 @@ def StartFunction(Keyword):
     
     global count
     global Total
-    global total
     count = 1
     Total = 0
     limit = 0
+    TotalOutputArticles = 0
     TopicsList = api.callAPI(Keyword)
     TopicsListZeeNews = ZeeNewsSearcher.CallZeeNews(Keyword)
     Total = len(TopicsList) + len(TopicsListZeeNews)
+    print('')
+    print('Total Targed articles to scrap -->', Total)
+    print('')
 
 # =============================================================================
 # Iterating News API
@@ -285,7 +290,7 @@ def StartFunction(Keyword):
             PublishedAt = TopicsList[Iterator]['publishedAt']
         
             Scrapper(Url, Name, 
-                     title = Title, total = Total, 
+                     title = Title, 
                      author = Author, urlToImage = UrlToImage,
                      publishedAt = PublishedAt, userAgent = ua)
             limit = random.randint(5, 14)
@@ -303,23 +308,24 @@ def StartFunction(Keyword):
             Title = TopicsListZeeNews[IteratorZee]['title']
         
             Scrapper(Url, Name, 
-                     title = Title, total = Total,
+                     title = Title,
                      userAgent = ua)
             limit = random.randint(6, 14)
             print("Sleeping for --> ", limit)
             print('')
             time.sleep(limit)
-        
-            JsonData = {
-                    "status": "ok",
-                    "totalResults": Total,
-                    "articles": ArticlesList
-                    }
 
 # =============================================================================
 # Dunping final articles into json format
 # =============================================================================
     
-    finally: 
+    finally:
+        
+        JsonData = {
+                "status": "ok",
+                "totalResults": len(ArticlesList),
+                "articles": ArticlesList
+                }
+                
         with open('NewsJsonOutput.json', 'a') as f:
             json.dump(JsonData, f, indent=4)
