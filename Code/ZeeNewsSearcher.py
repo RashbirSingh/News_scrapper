@@ -39,8 +39,8 @@ def CallZeeNews(Keyword):
 
     ReapiredLinksList.pop()       
 
-    with open('ZeeNewsJSONFile.json', 'w') as f:  
-        json.dump(ReapiredLinksList, f, indent=4)
+    #with open('ZeeNewsJSONFile.json', 'w') as f:  
+        #json.dump(ReapiredLinksList, f, indent=4)
         
     for TopicIterator in range(0, len(ReapiredLinksList)):
         Nameurl = re.sub('[/]', ' ', ReapiredLinksList[TopicIterator])

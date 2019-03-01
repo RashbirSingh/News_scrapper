@@ -30,7 +30,7 @@ from fake_useragent import UserAgent
 geckodriver = '/home/ubuntu/Desktop/News_Output_Test/geckodriver/geckodriver'
 count = 1
 Total = 0
-TotalOutputArticles = 0
+PrevLimit = 0
 ArticlesList = []
 
 # =============================================================================
@@ -50,8 +50,6 @@ def Scrapper(url,
     OutputZeeNews=[]
     OutputTimesOfIndia=[]
     global count
-    global ArticlesList
-    global TotalOutputArticles
 
 # =============================================================================
 # User agent list to scrap different usrs and spoof various browsers 
@@ -64,8 +62,7 @@ def Scrapper(url,
             userAgent.google,
             userAgent.firefox,
             userAgent.ff,
-            userAgent.safari,
-            userAgent.random
+            userAgent.safari
             ]
     
     user_agent = random.choice(user_agent_list)
@@ -80,7 +77,7 @@ def Scrapper(url,
         webpage = driver.page_source
 
     elif name == 'Zee News':
-        print(user_agent)
+        #print(user_agent)
         req = Request(
                 url, 
                 data=None, 
@@ -90,7 +87,7 @@ def Scrapper(url,
         webpage = urlopen(req).read()
 
     elif name == 'The Times of India':
-        print(user_agent)
+        #print(user_agent)
         req = Request(
                 url, 
                 data=None, 
@@ -178,6 +175,7 @@ def Scrapper(url,
             count = count + 1
 
 ################### Creating data dict ########################################           
+            OutputZeeNews.pop()
             data = {
                     #'totalResults': str(total),
                     'source': {
@@ -216,6 +214,7 @@ def Scrapper(url,
         OutputText = re.sub("\'s", "", OutputText)
         OutputText = re.sub("\n", "", OutputText)
         OutputText = re.sub("[/]/]", "", OutputText)
+        OutputText = re.sub("\u201d", "", OutputText)
         OutputText = re.sub("[[/]", "", OutputText)
         OutputText = re.split("[.]", OutputText)
         print(OutputText)
@@ -223,13 +222,14 @@ def Scrapper(url,
         for InternalIterator in range(0, len(OutputText)):
             if len(OutputText[InternalIterator]) > 0:
                 text = re.sub(r'[[/]','', OutputText[InternalIterator])
-                text = re.sub(r'\u201c','', text)
+                text = re.sub(r'\u201c | \u2019s |  \" | \u2013 | \u201d | \" | \u201c','', text)
                 OutputTimesOfIndia.append(text)
             
         print(OutputTimesOfIndia)
         count = count + 1
 
 ################### Creating data dict ########################################
+        OutputTimesOfIndia.pop()
         data = {
                 #'totalResults': str(total),
                 'source': {
@@ -263,10 +263,11 @@ def StartFunction(Keyword):
     
     global count
     global Total
+    global PrevLimit
     count = 1
     Total = 0
     limit = 0
-    TotalOutputArticles = 0
+    PrevLimit = 0
     TopicsList = api.callAPI(Keyword)
     TopicsListZeeNews = ZeeNewsSearcher.CallZeeNews(Keyword)
     Total = len(TopicsList) + len(TopicsListZeeNews)
@@ -293,7 +294,10 @@ def StartFunction(Keyword):
                      title = Title, 
                      author = Author, urlToImage = UrlToImage,
                      publishedAt = PublishedAt, userAgent = ua)
-            limit = random.randint(5, 14)
+            PrevLimit = limit
+            limit = random.randint(7, 14)
+            if PrevLimit == limit:
+                limit = random.randint(8, 18)
             print("Sleeping for --> ", limit)
             print('')
             time.sleep(limit)
@@ -310,7 +314,10 @@ def StartFunction(Keyword):
             Scrapper(Url, Name, 
                      title = Title,
                      userAgent = ua)
-            limit = random.randint(6, 14)
+            PrevLimit = limit
+            limit = random.randint(7, 14)
+            if PrevLimit == limit:
+                limit = random.randint(8, 18)
             print("Sleeping for --> ", limit)
             print('')
             time.sleep(limit)
@@ -327,5 +334,7 @@ def StartFunction(Keyword):
                 "articles": ArticlesList
                 }
                 
-        with open('NewsJsonOutput.json', 'a') as f:
+        with open('/home/ubuntu/Desktop/News_Output_Test/NewsJsonOutput.json', 'a') as f:
             json.dump(JsonData, f, indent=4)
+            
+        return JsonData

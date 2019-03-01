@@ -45,7 +45,7 @@ def callAPI(Keyword):
                     'content': TitleNumber[Itertaor]['articles'][URLIterator]['content']
                     })
             
-    with open('NewsAPIJSONFile.json', 'w') as f:  
-        json.dump(TitleNumber, f, indent=4)
+    #with open('NewsAPIJSONFile.json', 'w') as f:  
+        #json.dump(TitleNumber, f, indent=4)
         
     return TopicsList
